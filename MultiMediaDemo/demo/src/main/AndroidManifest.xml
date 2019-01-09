@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="com.hyty.demo">
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+    <uses-permission android:name="android.permission.hardware.camera.autofocus"/>
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/cordova_bot"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:name=".App"
+        android:theme="@style/AppTheme">
+        <!--<meta-data android:value="YOUR_APP_KEY" android:name="5a321f698f4a9d5c0200007d"/>-->
+        <!--<meta-data android:value="Channel ID" android:name="luxun"/>-->
+        <activity android:name=".Main">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+        <!--拍照页面-->
+        <activity
+            android:theme="@style/No_All"
+            android:name="com.hyty.cordova.mvp.ui.activity.TakeCameraActivity"
+            android:launchMode="singleTop">
+        </activity>
+    </application>
+
+</manifest>

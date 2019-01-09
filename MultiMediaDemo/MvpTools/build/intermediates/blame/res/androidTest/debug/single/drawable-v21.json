@@ -1,0 +1,34 @@
+[
+    {
+        "merged": "E:\\other\\MultiMediaPlugins3\\MultiMediaDemo\\MvpTools\\build\\intermediates\\res\\merged\\androidTest\\debug\\drawable-v21\\design_password_eye.xml",
+        "source": "C:\\Users\\Administrator\\.android\\build-cache\\d654fe9b34214cb5a35c48a94ac3c988d0bb076d\\output\\res\\drawable-v21\\design_password_eye.xml"
+    },
+    {
+        "merged": "E:\\other\\MultiMediaPlugins3\\MultiMediaDemo\\MvpTools\\build\\intermediates\\res\\merged\\androidTest\\debug\\drawable-v21\\notification_action_background.xml",
+        "source": "C:\\Users\\Administrator\\.android\\build-cache\\7fd81280014b5b8892069b66b349705c51cbb00d\\output\\res\\drawable-v21\\notification_action_background.xml"
+    },
+    {
+        "merged": "E:\\other\\MultiMediaPlugins3\\MultiMediaDemo\\MvpTools\\build\\intermediates\\res\\merged\\androidTest\\debug\\drawable-v21\\abc_btn_colored_material.xml",
+        "source": "C:\\Users\\Administrator\\.android\\build-cache\\a6c5fb81b6080fc7eb89e87bc2fe938311a4faa2\\output\\res\\drawable-v21\\abc_btn_colored_material.xml"
+    },
+    {
+        "merged": "E:\\other\\MultiMediaPlugins3\\MultiMediaDemo\\MvpTools\\build\\intermediates\\res\\merged\\androidTest\\debug\\drawable-v21\\abc_action_bar_item_background_material.xml",
+        "source": "C:\\Users\\Administrator\\.android\\build-cache\\a6c5fb81b6080fc7eb89e87bc2fe938311a4faa2\\output\\res\\drawable-v21\\abc_action_bar_item_background_material.xml"
+    },
+    {
+        "merged": "E:\\other\\MultiMediaPlugins3\\MultiMediaDemo\\MvpTools\\build\\intermediates\\res\\merged\\androidTest\\debug\\drawable-v21\\avd_hide_password.xml",
+        "source": "C:\\Users\\Administrator\\.android\\build-cache\\d654fe9b34214cb5a35c48a94ac3c988d0bb076d\\output\\res\\drawable-v21\\avd_hide_password.xml"
+    },
+    {
+        "merged": "E:\\other\\MultiMediaPlugins3\\MultiMediaDemo\\MvpTools\\build\\intermediates\\res\\merged\\androidTest\\debug\\drawable-v21\\abc_edit_text_material.xml",
+        "source": "C:\\Users\\Administrator\\.android\\build-cache\\a6c5fb81b6080fc7eb89e87bc2fe938311a4faa2\\output\\res\\drawable-v21\\abc_edit_text_material.xml"
+    },
+    {
+        "merged": "E:\\other\\MultiMediaPlugins3\\MultiMediaDemo\\MvpTools\\build\\intermediates\\res\\merged\\androidTest\\debug\\drawable-v21\\design_bottom_navigation_item_background.xml",
+        "source": "C:\\Users\\Administrator\\.android\\build-cache\\d654fe9b34214cb5a35c48a94ac3c988d0bb076d\\output\\res\\drawable-v21\\design_bottom_navigation_item_background.xml"
+    },
+    {
+        "merged": "E:\\other\\MultiMediaPlugins3\\MultiMediaDemo\\MvpTools\\build\\intermediates\\res\\merged\\androidTest\\debug\\drawable-v21\\avd_show_password.xml",
+        "source": "C:\\Users\\Administrator\\.android\\build-cache\\d654fe9b34214cb5a35c48a94ac3c988d0bb076d\\output\\res\\drawable-v21\\avd_show_password.xml"
+    }
+]

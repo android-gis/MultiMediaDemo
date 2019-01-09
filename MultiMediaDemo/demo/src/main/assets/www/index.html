@@ -1,0 +1,40 @@
+<h4>你好，这是一个html网页</h4><br>
+<body>
+<script src="./plugins/cordova-plugin-multimedia/www/MultiMediaPlugin.js"></script>
+<button type="button" onclick="type1()">快速拍照(type=1)</button>
+<br>
+<br>
+<br>
+<button type="button" onclick="type2()">多图选择(type=2)</button>
+<br>
+<br>
+<br>
+<button type="button" onclick="type3()">图片预览(type=3)</button>
+<br>
+<br>
+<br>
+
+<script>
+            function successCallback(result){
+                alert("成功回调");
+            }
+        function type1(){
+        var str ={"type":1,"maxOptionalNum":10,"folderName":"A_Plugin_Demo","flagText":"999米999米"};
+
+              window.plugins.MultiMediaPlugin.doOpen(
+			         successCallback,
+			         function error(){},str);
+        }
+        function type2(){
+           alert("多图选择");
+        }
+        function type3(){
+            alert("图片预览");
+        }
+
+
+
+
+
+</script>
+</body>

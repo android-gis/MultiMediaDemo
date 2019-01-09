@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<items version="2" >
+
+    <item
+        is-multidex="false"
+        jar="E:\other\MultiMediaPlugins3\MultiMediaDemo\MultiMedia\build\intermediates\bundles\default\libs\cordovalib.jar"
+        jumboMode="false"
+        optimize="true"
+        revision="26.0.2"
+        sha1="36689d8917d38479e7813d3cb253101e2fe1453a">
+        <dex dex="E:\other\MultiMediaPlugins3\MultiMediaDemo\demo\build\intermediates\pre-dexed\debug\cordovalib_c125e8f0d1c476e1aecb75a45e8221be58321bae.jar" />
+    </item>
+    <item
+        is-multidex="false"
+        jar="E:\other\MultiMediaPlugins3\MultiMediaDemo\MvpTools\build\intermediates\bundles\default\classes.jar"
+        jumboMode="false"
+        optimize="true"
+        revision="26.0.2"
+        sha1="9d8d59fc47c10ab07ea3739dfd39298ecc6bf2f3">
+        <dex dex="E:\other\MultiMediaPlugins3\MultiMediaDemo\demo\build\intermediates\pre-dexed\debug\classes_c1b35b77b158a110aba426a7c18af474fd48a89a.jar" />
+    </item>
+    <item
+        is-multidex="false"
+        jar="E:\other\MultiMediaPlugins3\MultiMediaDemo\MultiMedia\build\intermediates\bundles\default\classes.jar"
+        jumboMode="false"
+        optimize="true"
+        revision="26.0.2"
+        sha1="54eabe28f118dfb5f32fbe1b611bd539701245f1">
+        <dex dex="E:\other\MultiMediaPlugins3\MultiMediaDemo\demo\build\intermediates\pre-dexed\debug\classes_18da2a0f5cfb1b392d61558f5e04ca338db6cebc.jar" />
+    </item>
+    <item
+        is-multidex="false"
+        jar="E:\other\MultiMediaPlugins3\MultiMediaDemo\MultiMedia\build\intermediates\bundles\default\libs\fastjson-1.1.42.android.jar"
+        jumboMode="false"
+        optimize="true"
+        revision="26.0.2"
+        sha1="522690ef6db6c5fff25aef7e0ca93b98231272b0">
+        <dex dex="E:\other\MultiMediaPlugins3\MultiMediaDemo\demo\build\intermediates\pre-dexed\debug\fastjson-1.1.42.android_50462e35767b968b858e3b2fd73a8e8c28d49653.jar" />
+    </item>
+
+</items>

@@ -1,0 +1,106 @@
+[
+    {
+        "merged": "E:\\other\\MultiMediaPlugins3\\MultiMediaDemo\\MvpTools\\build\\intermediates\\res\\merged\\debug\\anim\\abc_shrink_fade_out_from_bottom.xml",
+        "source": "C:\\Users\\Administrator\\.android\\build-cache\\a6c5fb81b6080fc7eb89e87bc2fe938311a4faa2\\output\\res\\anim\\abc_shrink_fade_out_from_bottom.xml"
+    },
+    {
+        "merged": "E:\\other\\MultiMediaPlugins3\\MultiMediaDemo\\MvpTools\\build\\intermediates\\res\\merged\\debug\\anim\\abc_grow_fade_in_from_bottom.xml",
+        "source": "C:\\Users\\Administrator\\.android\\build-cache\\a6c5fb81b6080fc7eb89e87bc2fe938311a4faa2\\output\\res\\anim\\abc_grow_fade_in_from_bottom.xml"
+    },
+    {
+        "merged": "E:\\other\\MultiMediaPlugins3\\MultiMediaDemo\\MvpTools\\build\\intermediates\\res\\merged\\debug\\anim\\actionsheet_dialog_in.xml",
+        "source": "E:\\other\\MultiMediaPlugins3\\MultiMediaDemo\\MvpTools\\src\\main\\res\\anim\\actionsheet_dialog_in.xml"
+    },
+    {
+        "merged": "E:\\other\\MultiMediaPlugins3\\MultiMediaDemo\\MvpTools\\build\\intermediates\\res\\merged\\debug\\anim\\design_snackbar_in.xml",
+        "source": "C:\\Users\\Administrator\\.android\\build-cache\\d654fe9b34214cb5a35c48a94ac3c988d0bb076d\\output\\res\\anim\\design_snackbar_in.xml"
+    },
+    {
+        "merged": "E:\\other\\MultiMediaPlugins3\\MultiMediaDemo\\MvpTools\\build\\intermediates\\res\\merged\\debug\\anim\\slide_out_bottom.xml",
+        "source": "E:\\other\\MultiMediaPlugins3\\MultiMediaDemo\\MvpTools\\src\\main\\res\\anim\\slide_out_bottom.xml"
+    },
+    {
+        "merged": "E:\\other\\MultiMediaPlugins3\\MultiMediaDemo\\MvpTools\\build\\intermediates\\res\\merged\\debug\\anim\\ucrop_loader_circle_path.xml",
+        "source": "C:\\Users\\Administrator\\.android\\build-cache\\bde054e1cac15ddef748d66439fcab759b657a2a\\output\\res\\anim\\ucrop_loader_circle_path.xml"
+    },
+    {
+        "merged": "E:\\other\\MultiMediaPlugins3\\MultiMediaDemo\\MvpTools\\build\\intermediates\\res\\merged\\debug\\anim\\design_bottom_sheet_slide_in.xml",
+        "source": "C:\\Users\\Administrator\\.android\\build-cache\\d654fe9b34214cb5a35c48a94ac3c988d0bb076d\\output\\res\\anim\\design_bottom_sheet_slide_in.xml"
+    },
+    {
+        "merged": "E:\\other\\MultiMediaPlugins3\\MultiMediaDemo\\MvpTools\\build\\intermediates\\res\\merged\\debug\\anim\\design_bottom_sheet_slide_out.xml",
+        "source": "C:\\Users\\Administrator\\.android\\build-cache\\d654fe9b34214cb5a35c48a94ac3c988d0bb076d\\output\\res\\anim\\design_bottom_sheet_slide_out.xml"
+    },
+    {
+        "merged": "E:\\other\\MultiMediaPlugins3\\MultiMediaDemo\\MvpTools\\build\\intermediates\\res\\merged\\debug\\anim\\abc_slide_in_top.xml",
+        "source": "C:\\Users\\Administrator\\.android\\build-cache\\a6c5fb81b6080fc7eb89e87bc2fe938311a4faa2\\output\\res\\anim\\abc_slide_in_top.xml"
+    },
+    {
+        "merged": "E:\\other\\MultiMediaPlugins3\\MultiMediaDemo\\MvpTools\\build\\intermediates\\res\\merged\\debug\\anim\\abc_fade_in.xml",
+        "source": "C:\\Users\\Administrator\\.android\\build-cache\\a6c5fb81b6080fc7eb89e87bc2fe938311a4faa2\\output\\res\\anim\\abc_fade_in.xml"
+    },
+    {
+        "merged": "E:\\other\\MultiMediaPlugins3\\MultiMediaDemo\\MvpTools\\build\\intermediates\\res\\merged\\debug\\anim\\design_snackbar_out.xml",
+        "source": "C:\\Users\\Administrator\\.android\\build-cache\\d654fe9b34214cb5a35c48a94ac3c988d0bb076d\\output\\res\\anim\\design_snackbar_out.xml"
+    },
+    {
+        "merged": "E:\\other\\MultiMediaPlugins3\\MultiMediaDemo\\MvpTools\\build\\intermediates\\res\\merged\\debug\\anim\\slide_in_bottom.xml",
+        "source": "E:\\other\\MultiMediaPlugins3\\MultiMediaDemo\\MvpTools\\src\\main\\res\\anim\\slide_in_bottom.xml"
+    },
+    {
+        "merged": "E:\\other\\MultiMediaPlugins3\\MultiMediaDemo\\MvpTools\\build\\intermediates\\res\\merged\\debug\\anim\\boxing_fade_in.xml",
+        "source": "E:\\other\\MultiMediaPlugins3\\MultiMediaDemo\\MvpTools\\src\\main\\res\\anim\\boxing_fade_in.xml"
+    },
+    {
+        "merged": "E:\\other\\MultiMediaPlugins3\\MultiMediaDemo\\MvpTools\\build\\intermediates\\res\\merged\\debug\\anim\\abc_slide_out_top.xml",
+        "source": "C:\\Users\\Administrator\\.android\\build-cache\\a6c5fb81b6080fc7eb89e87bc2fe938311a4faa2\\output\\res\\anim\\abc_slide_out_top.xml"
+    },
+    {
+        "merged": "E:\\other\\MultiMediaPlugins3\\MultiMediaDemo\\MvpTools\\build\\intermediates\\res\\merged\\debug\\anim\\tooltip_enter.xml",
+        "source": "C:\\Users\\Administrator\\.android\\build-cache\\a6c5fb81b6080fc7eb89e87bc2fe938311a4faa2\\output\\res\\anim\\tooltip_enter.xml"
+    },
+    {
+        "merged": "E:\\other\\MultiMediaPlugins3\\MultiMediaDemo\\MvpTools\\build\\intermediates\\res\\merged\\debug\\anim\\abc_slide_in_bottom.xml",
+        "source": "C:\\Users\\Administrator\\.android\\build-cache\\a6c5fb81b6080fc7eb89e87bc2fe938311a4faa2\\output\\res\\anim\\abc_slide_in_bottom.xml"
+    },
+    {
+        "merged": "E:\\other\\MultiMediaPlugins3\\MultiMediaDemo\\MvpTools\\build\\intermediates\\res\\merged\\debug\\anim\\abc_fade_out.xml",
+        "source": "C:\\Users\\Administrator\\.android\\build-cache\\a6c5fb81b6080fc7eb89e87bc2fe938311a4faa2\\output\\res\\anim\\abc_fade_out.xml"
+    },
+    {
+        "merged": "E:\\other\\MultiMediaPlugins3\\MultiMediaDemo\\MvpTools\\build\\intermediates\\res\\merged\\debug\\anim\\ucrop_loader_circle_scale.xml",
+        "source": "C:\\Users\\Administrator\\.android\\build-cache\\bde054e1cac15ddef748d66439fcab759b657a2a\\output\\res\\anim\\ucrop_loader_circle_scale.xml"
+    },
+    {
+        "merged": "E:\\other\\MultiMediaPlugins3\\MultiMediaDemo\\MvpTools\\build\\intermediates\\res\\merged\\debug\\anim\\abc_popup_enter.xml",
+        "source": "C:\\Users\\Administrator\\.android\\build-cache\\a6c5fb81b6080fc7eb89e87bc2fe938311a4faa2\\output\\res\\anim\\abc_popup_enter.xml"
+    },
+    {
+        "merged": "E:\\other\\MultiMediaPlugins3\\MultiMediaDemo\\MvpTools\\build\\intermediates\\res\\merged\\debug\\anim\\fade_in_center.xml",
+        "source": "E:\\other\\MultiMediaPlugins3\\MultiMediaDemo\\MvpTools\\src\\main\\res\\anim\\fade_in_center.xml"
+    },
+    {
+        "merged": "E:\\other\\MultiMediaPlugins3\\MultiMediaDemo\\MvpTools\\build\\intermediates\\res\\merged\\debug\\anim\\boxing_fade_out.xml",
+        "source": "E:\\other\\MultiMediaPlugins3\\MultiMediaDemo\\MvpTools\\src\\main\\res\\anim\\boxing_fade_out.xml"
+    },
+    {
+        "merged": "E:\\other\\MultiMediaPlugins3\\MultiMediaDemo\\MvpTools\\build\\intermediates\\res\\merged\\debug\\anim\\actionsheet_dialog_out.xml",
+        "source": "E:\\other\\MultiMediaPlugins3\\MultiMediaDemo\\MvpTools\\src\\main\\res\\anim\\actionsheet_dialog_out.xml"
+    },
+    {
+        "merged": "E:\\other\\MultiMediaPlugins3\\MultiMediaDemo\\MvpTools\\build\\intermediates\\res\\merged\\debug\\anim\\tooltip_exit.xml",
+        "source": "C:\\Users\\Administrator\\.android\\build-cache\\a6c5fb81b6080fc7eb89e87bc2fe938311a4faa2\\output\\res\\anim\\tooltip_exit.xml"
+    },
+    {
+        "merged": "E:\\other\\MultiMediaPlugins3\\MultiMediaDemo\\MvpTools\\build\\intermediates\\res\\merged\\debug\\anim\\abc_slide_out_bottom.xml",
+        "source": "C:\\Users\\Administrator\\.android\\build-cache\\a6c5fb81b6080fc7eb89e87bc2fe938311a4faa2\\output\\res\\anim\\abc_slide_out_bottom.xml"
+    },
+    {
+        "merged": "E:\\other\\MultiMediaPlugins3\\MultiMediaDemo\\MvpTools\\build\\intermediates\\res\\merged\\debug\\anim\\abc_popup_exit.xml",
+        "source": "C:\\Users\\Administrator\\.android\\build-cache\\a6c5fb81b6080fc7eb89e87bc2fe938311a4faa2\\output\\res\\anim\\abc_popup_exit.xml"
+    },
+    {
+        "merged": "E:\\other\\MultiMediaPlugins3\\MultiMediaDemo\\MvpTools\\build\\intermediates\\res\\merged\\debug\\anim\\fade_out_center.xml",
+        "source": "E:\\other\\MultiMediaPlugins3\\MultiMediaDemo\\MvpTools\\src\\main\\res\\anim\\fade_out_center.xml"
+    }
+]

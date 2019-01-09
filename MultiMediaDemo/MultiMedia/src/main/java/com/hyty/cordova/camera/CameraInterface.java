@@ -1,0 +1,986 @@
+package com.hyty.cordova.camera;
+
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.ImageFormat;
+import android.graphics.Matrix;
+import android.graphics.Rect;
+import android.graphics.RectF;
+import android.graphics.YuvImage;
+import android.hardware.Camera;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
+import android.media.MediaRecorder;
+import android.os.Build;
+import android.os.Environment;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.util.Log;
+import android.util.Size;
+import android.view.Surface;
+import android.view.SurfaceHolder;
+import android.widget.ImageView;
+import android.widget.RelativeLayout;
+
+import com.hyty.cordova.MultiMediaConfig;
+import com.hyty.cordova.camera.listener.ErrorListener;
+import com.hyty.cordova.camera.util.AngleUtil;
+import com.hyty.cordova.camera.util.CameraParamUtil;
+import com.hyty.cordova.camera.util.CheckPermission;
+import com.hyty.cordova.camera.util.DeviceUtil;
+import com.hyty.cordova.camera.util.FileUtil;
+import com.hyty.cordova.camera.util.ScreenUtils;
+import com.hyty.cordova.imagepicker.ImagePicker;
+import com.hyty.cordova.mvp.ui.activity.TakeCameraActivity;
+import com.hyty.cordova.mvp.ui.view.seekbar.VerticalSeekBar;
+import com.hyty.cordova.mvp.ui.view.seekbar.VerticalSeekBarWrapper;
+import com.jess.arms.exceptiontool.CustomActivityOnCrash;
+import com.jess.arms.exceptiontool.activity.DefaultErrorActivity;
+import com.jess.arms.utils.ArmsUtils;
+import com.jess.arms.widget.dialog.alertview.OnClickListener;
+import com.umeng.analytics.MobclickAgent;
+
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+
+import timber.log.Timber;
+
+import static android.graphics.Bitmap.createBitmap;
+
+/**
+ * =====================================
+ * 作    者: 赵文贇
+ * 版    本：1.1.4
+ * 创建日期：2017/4/25
+ * 描    述：camera操作单例
+ * =====================================
+ */
+@SuppressWarnings("deprecation")
+public class CameraInterface implements Camera.PreviewCallback {
+
+    private static final String TAG = "CJT";
+
+    private volatile static CameraInterface mCameraInterface;
+    private final MultiMediaConfig mMultiMediaConfig;
+    private RelativeLayout mRL_Flag;
+    private int alreadyTakePicsNum = 0;
+
+    public static void destroyCameraInterface() {
+        if (mCameraInterface != null) {
+            mCameraInterface = null;
+        }
+    }
+
+    private Camera mCamera;
+    private Camera.Parameters mParams;
+    private boolean isPreviewing = false;
+
+    private int SELECTED_CAMERA = -1;
+    private int CAMERA_POST_POSITION = -1;
+    private int CAMERA_FRONT_POSITION = -1;
+
+    private SurfaceHolder mHolder = null;
+    private float screenProp = -1.0f;
+
+    private boolean isRecorder = false;
+    private MediaRecorder mediaRecorder;
+    private String videoFileName;
+    private String saveVideoPath;
+    private String videoFileAbsPath;
+    private Bitmap videoFirstFrame = null;
+
+    private ErrorListener errorLisenter;
+
+    private ImageView mSwitchView;
+    private ImageView mFlashLamp;
+
+    private int preview_width;
+    private int preview_height;
+
+    private int angle = 0;
+    private int cameraAngle = 90;//摄像头角度   默认为90度
+    private int rotation = 0;
+    private byte[] firstFrame_data;
+
+    public static final int TYPE_RECORDER = 0x090;
+    public static final int TYPE_CAPTURE = 0x091;
+    private int nowScaleRate = 0;
+    private int recordScleRate = 0;
+
+    //视频质量
+    private int mediaQuality = JCameraView.MEDIA_QUALITY_MIDDLE;
+    private SensorManager sm = null;
+
+    //获取CameraInterface单例
+    public static synchronized CameraInterface getInstance() {
+        if (mCameraInterface == null)
+            synchronized (CameraInterface.class) {
+                if (mCameraInterface == null)
+                    mCameraInterface = new CameraInterface();
+            }
+        return mCameraInterface;
+    }
+
+    public Camera getCamera() {
+        return mCamera;
+    }
+
+    public void setSwitchView(ImageView mSwitchView, ImageView mFlashLamp, RelativeLayout mRelativeLayout) {
+        this.mSwitchView = mSwitchView;
+        this.mRL_Flag = mRelativeLayout;
+        this.mFlashLamp = mFlashLamp;
+        if (mSwitchView != null) {
+            cameraAngle = CameraParamUtil.getInstance().getCameraDisplayOrientation(mSwitchView.getContext(),
+                    SELECTED_CAMERA);
+        }
+    }
+
+    private SensorEventListener sensorEventListener = new SensorEventListener() {
+        public void onSensorChanged(SensorEvent event) {
+            if (Sensor.TYPE_ACCELEROMETER != event.sensor.getType()) {
+                return;
+            }
+            float[] values = event.values;
+            angle = AngleUtil.getSensorAngle(values[0], values[1]);
+            rotationAnimation();
+        }
+
+        public void onAccuracyChanged(Sensor sensor, int accuracy) {
+        }
+    };
+
+    //切换摄像头icon跟随手机角度进行旋转
+    private void rotationAnimation() {
+        if (mSwitchView == null) {
+            return;
+        }
+        if (rotation != angle) {
+            int start_rotaion = 0;
+            int end_rotation = 0;
+            switch (rotation) {
+                case 0:
+                    start_rotaion = 0;
+                    switch (angle) {
+                        case 90:
+                            end_rotation = -90;
+                            break;
+                        case 270:
+                            end_rotation = 90;
+                            break;
+                    }
+                    break;
+                case 90:
+                    start_rotaion = -90;
+                    switch (angle) {
+                        case 0:
+                            end_rotation = 0;
+                            break;
+                        case 180:
+                            end_rotation = -180;
+                            break;
+                    }
+                    break;
+                case 180:
+                    start_rotaion = 180;
+                    switch (angle) {
+                        case 90:
+                            end_rotation = 270;
+                            break;
+                        case 270:
+                            end_rotation = 90;
+                            break;
+                    }
+                    break;
+                case 270:
+                    start_rotaion = 90;
+                    switch (angle) {
+                        case 0:
+                            end_rotation = 0;
+                            break;
+                        case 180:
+                            end_rotation = 180;
+                            break;
+                    }
+                    break;
+            }
+            ObjectAnimator animC = ObjectAnimator.ofFloat(mSwitchView, "rotation", start_rotaion, end_rotation);
+            ObjectAnimator animF = ObjectAnimator.ofFloat(mFlashLamp, "rotation", start_rotaion, end_rotation);
+            ObjectAnimator animD = ObjectAnimator.ofFloat(mRL_Flag, "rotation", start_rotaion, end_rotation);
+//            Timber.d("重力感应相关数据:\nstart_rotaion : " + start_rotaion + "\n end_rotation : " + end_rotation);
+//            0 ~90 :将照片逆时针旋转90度后将水印打入底部；
+//            0 ~-90:将照片顺时针旋转90度后将水印打入底部；
+//            默认 ~直接将水印打入底部
+            MultiMediaConfig.CameraTextFlagLocation mFlagLocation;
+            if (start_rotaion == 0 && end_rotation == 90) {
+                mFlagLocation = MultiMediaConfig.CameraTextFlagLocation.LEFT;
+            } else if (start_rotaion == 90 && end_rotation == 0) {
+                mFlagLocation = MultiMediaConfig.CameraTextFlagLocation.DEFAULT;
+            } else if (start_rotaion == 0 && end_rotation == -90) {
+                mFlagLocation = MultiMediaConfig.CameraTextFlagLocation.RIGHT;
+            } else if (start_rotaion == -90 && end_rotation == -0) {
+                mFlagLocation = MultiMediaConfig.CameraTextFlagLocation.DEFAULT;
+            } else {
+                mFlagLocation = MultiMediaConfig.CameraTextFlagLocation.DEFAULT;
+            }
+            mMultiMediaConfig.setFlagLocation(mFlagLocation);
+            AnimatorSet set = new AnimatorSet();
+            set.playTogether(animC, animF, animD);
+            set.setDuration(500);
+            set.start();
+            rotation = angle;
+        }
+    }
+
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    void setSaveVideoPath(String saveVideoPath) {
+        this.saveVideoPath = saveVideoPath;
+        File file = new File(saveVideoPath);
+        if (!file.exists()) {
+            file.mkdirs();
+        }
+    }
+
+
+    public void setZoom(float zoom, int type) {
+        if (mCamera == null) {
+            return;
+        }
+        if (mParams == null) {
+            mParams = mCamera.getParameters();
+        }
+        if (!mParams.isZoomSupported() || !mParams.isSmoothZoomSupported()) {
+            return;
+        }
+        switch (type) {
+            case TYPE_RECORDER:
+                //如果不是录制视频中，上滑不会缩放
+                if (!isRecorder) {
+                    return;
+                }
+                if (zoom >= 0) {
+                    //每移动50个像素缩放一个级别
+                    int scaleRate = (int) (zoom / 40);
+                    if (scaleRate <= mParams.getMaxZoom() && scaleRate >= nowScaleRate && recordScleRate != scaleRate) {
+                        mParams.setZoom(scaleRate);
+                        mCamera.setParameters(mParams);
+                        recordScleRate = scaleRate;
+                    }
+                }
+                break;
+            case TYPE_CAPTURE:
+                if (isRecorder) {
+                    return;
+                }
+                //每移动50个像素缩放一个级别
+                int scaleRate = (int) (zoom / 50);
+                if (scaleRate < mParams.getMaxZoom()) {
+                    nowScaleRate += scaleRate;
+                    if (nowScaleRate < 0) {
+                        nowScaleRate = 0;
+                    } else if (nowScaleRate > mParams.getMaxZoom()) {
+                        nowScaleRate = mParams.getMaxZoom();
+                    }
+                    mParams.setZoom(nowScaleRate);
+                    mCamera.setParameters(mParams);
+                }
+                Timber.d("setZoom = " + nowScaleRate);
+                break;
+        }
+
+    }
+
+    void setMediaQuality(int quality) {
+        this.mediaQuality = quality;
+    }
+
+
+    @Override
+    public void onPreviewFrame(byte[] data, Camera camera) {
+        firstFrame_data = data;
+    }
+
+    public void setFlashMode(String flashMode) {
+        if (mCamera == null) {
+            openCamera(SELECTED_CAMERA);
+        }
+        Camera.Parameters params = mCamera.getParameters();
+        params.setFlashMode(flashMode);
+        mCamera.setParameters(params);
+    }
+
+
+    public interface CameraOpenOverCallback {
+        void cameraHasOpened();
+    }
+
+    private CameraInterface() {
+        findAvailableCameras();
+        SELECTED_CAMERA = CAMERA_POST_POSITION;
+        saveVideoPath = "";
+        mMultiMediaConfig = MultiMediaConfig.getInstance();
+//        maxPic = mMultiMediaConfig.getMaxOptionalNum();
+    }
+
+
+    /**
+     * open Camera
+     */
+    void doOpenCamera(CameraOpenOverCallback callback) {
+//        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+//            if (!CheckPermission.isCameraUseable(SELECTED_CAMERA) && this.errorLisenter != null) {
+//                this.errorLisenter.onError();
+//                return;
+//            }
+//        }
+        if (mCamera == null) {
+            openCamera(SELECTED_CAMERA);
+        }
+        callback.cameraHasOpened();
+    }
+
+
+    private synchronized void openCamera(int id) {
+        try {
+            this.mCamera = Camera.open(id);
+            Camera.Parameters p = mCamera.getParameters();
+            p.setFlashMode(Camera.Parameters.FLASH_MODE_AUTO);
+            mCamera.setParameters(p);
+        } catch (Exception var3) {
+            var3.printStackTrace();
+            if (this.errorLisenter != null) {
+                this.errorLisenter.onError();
+            }
+        }
+
+        if (Build.VERSION.SDK_INT > 17 && this.mCamera != null) {
+            try {
+                this.mCamera.enableShutterSound(false);
+            } catch (Exception e) {
+                e.printStackTrace();
+                Log.e("CJT", "enable shutter sound faild");
+            }
+        }
+    }
+
+    public synchronized void switchCamera(SurfaceHolder holder, float screenProp) {
+        if (SELECTED_CAMERA == CAMERA_POST_POSITION) {
+            SELECTED_CAMERA = CAMERA_FRONT_POSITION;
+        } else {
+            SELECTED_CAMERA = CAMERA_POST_POSITION;
+        }
+        doDestroyCamera();
+        Timber.d("open start");
+        openCamera(SELECTED_CAMERA);
+//        mCamera = Camera.open();
+        if (Build.VERSION.SDK_INT > 17 && this.mCamera != null) {
+            try {
+                this.mCamera.enableShutterSound(false);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        Timber.d("open end");
+        doStartPreview(holder, screenProp);
+    }
+
+    /**
+     * doStartPreview
+     */
+    public void doStartPreview(SurfaceHolder holder, float screenProp) {
+        if (isPreviewing) {
+            Timber.d("doStartPreview isPreviewing");
+        }
+        if (this.screenProp < 0) {
+            this.screenProp = screenProp;
+        }
+        if (holder == null) {
+            return;
+        }
+        this.mHolder = holder;
+        if (mCamera != null) {
+            try {
+                mParams = mCamera.getParameters();
+//                int picSize_w;
+//                int picSize_h;
+                Camera.Size previewSize = CameraParamUtil.getInstance().getPreviewSize(mParams
+                        .getSupportedPreviewSizes(), 1000, screenProp);
+                Camera.Size pictureSize = CameraParamUtil.getInstance().getPictureSize(mParams
+                        .getSupportedPictureSizes(), 1200, screenProp);
+
+                String manufacturer = android.os.Build.MANUFACTURER;
+                if(manufacturer.toLowerCase().contains("oppo") || manufacturer.toLowerCase().contains("vivo")) {//oppo/vivo手机特殊处理
+                    List<Camera.Size> pictureList = mParams.getSupportedPictureSizes();
+                    List<Camera.Size> previewList = mParams.getSupportedPreviewSizes();
+                    Camera.Size pictureItem = pictureList.get(0);
+                    Camera.Size previewItem = previewList.get(0);
+                    mParams.setPreviewSize(previewItem.width, previewItem.height);
+                    mParams.setPictureSize(pictureItem.width, pictureItem.height);
+                }else if(manufacturer.toLowerCase().contains("meizu")){//meizu手机特殊处理
+                    List<Camera.Size> pictureList = mParams.getSupportedPictureSizes();
+                    List<Camera.Size> previewList = mParams.getSupportedPreviewSizes();
+                    Camera.Size pictureItem = pictureList.get(pictureList.size()-1);
+                    Camera.Size previewItem = previewList.get(previewList.size()-1);
+                    mParams.setPreviewSize(previewItem.width, previewItem.height);
+                    mParams.setPictureSize(pictureItem.width, pictureItem.height);
+                }else{
+                    mParams.setPreviewSize(previewSize.width, previewSize.height);
+                    mParams.setPictureSize(pictureSize.width, pictureSize.height);
+                }
+
+                preview_width = previewSize.width;
+                preview_height = previewSize.height;
+
+
+                StringBuffer mPreviewSizeList = new StringBuffer();
+                StringBuffer mPictrueSizeList = new StringBuffer();
+
+                for (Camera.Size mSize : mCamera.getParameters().getSupportedPreviewSizes()) {
+                    mPreviewSizeList.append(mSize.width + " * " + mSize.height).append("\n");
+                }
+                for (Camera.Size mSize : mCamera.getParameters().getSupportedPictureSizes()) {
+                    mPictrueSizeList.append(mSize.width + " * " + mSize.height).append("\n");
+                }
+                Timber.d("预览支持的分辨率:\n" + mPreviewSizeList);
+                Timber.d("预览最终选定使用的分辨率:" + preview_width + " * " + preview_height);
+
+                Timber.d("成像支持的分辨率:\n" + mPictrueSizeList);
+                Timber.d("成像最终选定使用的分辨率:" + pictureSize.width + " * " + pictureSize.height);
+//
+//                int picSize_w;
+//                int picSize_h;
+//                if (getDeviceModelName().equals("HUAWEI")){
+//                    picSize_w = 720;
+//                    picSize_h = 720;
+//
+//                    preview_width = 3104;
+//                    preview_height = 3104;
+//
+//                }else {
+//                    Camera.Size previewSize = CameraParamUtil.getInstance().getPreviewSize(mParams
+//                            .getSupportedPreviewSizes(), 1000, screenProp);
+//                    Camera.Size pictureSize = CameraParamUtil.getInstance().getPictureSize(mParams
+//                            .getSupportedPictureSizes(), 1200, screenProp);
+//
+//                    picSize_w = previewSize.width;
+//                    picSize_h = previewSize.height;
+//
+//                    preview_width = pictureSize.width;
+//                    preview_height = pictureSize.height;
+//                }
+//
+//                mParams.setPreviewSize(preview_width, preview_height);
+//                mParams.setPictureSize(picSize_w, picSize_h);
+//
+////                preview_width = previewSize.width;
+////                preview_height = previewSize.height;
+//                Timber.d("预览使用的分辨率:" + preview_width + " * " + preview_height);
+//                Timber.d("成像使用的分辨率:" + picSize_w + " * " + picSize_h);
+//
+
+                if (CameraParamUtil.getInstance().isSupportedFocusMode(
+                        mParams.getSupportedFocusModes(),
+                        Camera.Parameters.FOCUS_MODE_AUTO)) {
+                    mParams.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
+                }
+                if (CameraParamUtil.getInstance().isSupportedPictureFormats(mParams.getSupportedPictureFormats(),
+                        ImageFormat.JPEG)) {
+                    mParams.setPictureFormat(ImageFormat.JPEG);
+                    mParams.setJpegQuality(100);
+                }
+//                mParams = null;
+//                try {
+                mCamera.setParameters(mParams);
+//                } catch (Exception mE) {
+//                    ArmsUtils.showAlertDialog("提示", "系统版本过低，请升级系统版本", false, new OnClickListener() {
+//                        @Override
+//                        public void onCancle() {
+//                            ArmsUtils.obtainAppComponentFromContext(mSwitchView.getContext()).appManager().killActivity(TakeCameraActivity.class);
+//                        }
+//
+//                        @Override
+//                        public void onSubmit() {
+//                            ArmsUtils.obtainAppComponentFromContext(mSwitchView.getContext()).appManager().killActivity(TakeCameraActivity.class);
+//                        }
+//                    });
+//                }
+                mParams = mCamera.getParameters();
+                mCamera.setPreviewDisplay(holder);  //SurfaceView
+                mCamera.setDisplayOrientation(cameraAngle);//浏览角度
+                mCamera.setPreviewCallback(this); //每一帧回调
+                mCamera.startPreview();//启动浏览
+                isPreviewing = true;
+                Log.i(TAG, "=== Start Preview ===");
+            } catch (Exception e) {
+                e.printStackTrace();
+                MobclickAgent.reportError(mSwitchView.getContext(), "打开相机时异常一次，手动捕获:\n" + "AndroidSysVersion:" + "API"
+                        + android.os.Build.VERSION.SDK + ",android"
+                        + android.os.Build.VERSION.RELEASE + "\n\n" + e);
+                ArmsUtils.showAlertDialog("提示", "系统版本过低，请升级系统版本", false, new OnClickListener() {
+                    @Override
+                    public void onCancle() {
+                        ArmsUtils.obtainAppComponentFromContext(mSwitchView.getContext()).appManager().killActivity(TakeCameraActivity.class);
+                    }
+
+                    @Override
+                    public void onSubmit() {
+                        ArmsUtils.obtainAppComponentFromContext(mSwitchView.getContext()).appManager().killActivity(TakeCameraActivity.class);
+                    }
+                });
+            }
+        }
+    }
+
+    /**
+     * 停止预览
+     */
+    public void doStopPreview() {
+        if (null != mCamera) {
+            try {
+                mCamera.setPreviewCallback(null);
+                mCamera.stopPreview();
+                //这句要在stopPreview后执行，不然会卡顿或者花屏
+                mCamera.setPreviewDisplay(null);
+                isPreviewing = false;
+                Log.i(TAG, "=== Stop Preview ===");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * 销毁Camera
+     */
+    void doDestroyCamera() {
+        errorLisenter = null;
+        alreadyTakePicsNum = 0;
+        if (null != mCamera) {
+            try {
+                mCamera.setPreviewCallback(null);
+                mSwitchView = null;
+                mFlashLamp = null;
+                mCamera.stopPreview();
+                //这句要在stopPreview后执行，不然会卡顿或者花屏
+                mCamera.setPreviewDisplay(null);
+                mHolder = null;
+                isPreviewing = false;
+                mCamera.release();
+                mCamera = null;
+//                destroyCameraInterface();
+                Log.i(TAG, "=== Destroy Camera ===");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            Log.i(TAG, "=== Camera  Null===");
+        }
+    }
+
+    /**
+     * 拍照
+     */
+    private int nowAngle;
+
+    public void takePicture(final TakePictureCallback callback) {
+        if (mCamera == null) {
+            return;
+        }
+        switch (cameraAngle) {
+            case 90:
+                nowAngle = Math.abs(angle + cameraAngle) % 360;
+                break;
+            case 270:
+                nowAngle = Math.abs(cameraAngle - angle);
+                break;
+        }
+//
+        Log.i("CJT", angle + " = " + cameraAngle + " = " + nowAngle);
+        if (alreadyTakePicsNum == mMultiMediaConfig.getMaxOptionalNum() && mMultiMediaConfig.getDoType() == 1) {
+            ArmsUtils.showToast("超出最大可拍照数量");
+            return;
+        }
+        alreadyTakePicsNum++;
+//        ArmsUtils.showLoading("处理中...", true, null);
+        MultiMediaConfig.startTime = new Date().getTime();
+        try {
+            mCamera.takePicture(null, null, new Camera.PictureCallback() {
+                @Override
+                public void onPictureTaken(byte[] data, Camera camera) {
+                    //                data = new byte[0];
+                    // TODO: 2017/12/14 拍照返回空m
+                    Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
+                    if (bitmap == null) {
+                        callback.captureResult(null, false);
+                        return;
+                    }
+                    Matrix matrix = new Matrix();
+                    if (SELECTED_CAMERA == CAMERA_POST_POSITION) {
+                        matrix.setRotate(nowAngle);
+                    } else if (SELECTED_CAMERA == CAMERA_FRONT_POSITION) {
+                        matrix.setRotate(360 - nowAngle);
+                        matrix.postScale(-1, 1);
+                    }
+
+                    bitmap = createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+                    if (callback != null) {
+                        if (nowAngle == 90 || nowAngle == 270) {
+                            callback.captureResult(bitmap, true);
+                        } else {
+                            callback.captureResult(bitmap, false);
+                        }
+                        Timber.d("拍照成功,耗时:" + (new Date().getTime() - MultiMediaConfig.startTime) + " ms");
+                    }
+                }
+            });
+        } catch (Exception mE) {
+            mE.printStackTrace();
+//            ArmsUtils.showToast("成像失败，请重试111！");
+            callback.captureResult(null, false);
+            MobclickAgent.reportError(mSwitchView.getContext(), "拍照时异常一次，手动捕获:\n" + "AndroidSysVersion:" + "API"
+                    + android.os.Build.VERSION.SDK + ",android"
+                    + android.os.Build.VERSION.RELEASE + "\n\n" + mE);
+        }
+    }
+
+    //启动录像
+    public void startRecord(Surface surface, float screenProp, ErrorCallback callback) {
+        mCamera.setPreviewCallback(null);
+        final int nowAngle = (angle + 90) % 360;
+        //获取第一帧图片
+        Camera.Parameters parameters = mCamera.getParameters();
+        int width = parameters.getPreviewSize().width;
+        int height = parameters.getPreviewSize().height;
+        YuvImage yuv = new YuvImage(firstFrame_data, parameters.getPreviewFormat(), width, height, null);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        yuv.compressToJpeg(new Rect(0, 0, width, height), 50, out);
+        byte[] bytes = out.toByteArray();
+        videoFirstFrame = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+        Matrix matrix = new Matrix();
+        if (SELECTED_CAMERA == CAMERA_POST_POSITION) {
+            matrix.setRotate(nowAngle);
+        } else if (SELECTED_CAMERA == CAMERA_FRONT_POSITION) {
+            matrix.setRotate(270);
+        }
+        videoFirstFrame = createBitmap(videoFirstFrame, 0, 0, videoFirstFrame.getWidth(), videoFirstFrame
+                .getHeight(), matrix, true);
+
+        if (isRecorder) {
+            return;
+        }
+        if (mCamera == null) {
+            openCamera(SELECTED_CAMERA);
+        }
+        if (mediaRecorder == null) {
+            mediaRecorder = new MediaRecorder();
+        }
+        if (mParams == null) {
+            mParams = mCamera.getParameters();
+        }
+        List<String> focusModes = mParams.getSupportedFocusModes();
+        if (focusModes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO)) {
+            mParams.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO);
+        }
+        mCamera.setParameters(mParams);
+        mCamera.unlock();
+        mediaRecorder.reset();
+        mediaRecorder.setCamera(mCamera);
+        mediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
+
+        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+
+        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+        mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
+        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+
+
+        Camera.Size videoSize;
+        if (mParams.getSupportedVideoSizes() == null) {
+            videoSize = CameraParamUtil.getInstance().getPreviewSize(mParams.getSupportedPreviewSizes(), 600,
+                    screenProp);
+        } else {
+            videoSize = CameraParamUtil.getInstance().getPreviewSize(mParams.getSupportedVideoSizes(), 600,
+                    screenProp);
+        }
+        Log.i(TAG, "setVideoSize    width = " + videoSize.width + "height = " + videoSize.height);
+        if (videoSize.width == videoSize.height) {
+            mediaRecorder.setVideoSize(preview_width, preview_height);
+        } else {
+            mediaRecorder.setVideoSize(videoSize.width, videoSize.height);
+        }
+//        if (SELECTED_CAMERA == CAMERA_FRONT_POSITION) {
+//            mediaRecorder.setOrientationHint(270);
+//        } else {
+//            mediaRecorder.setOrientationHint(nowAngle);
+////            mediaRecorder.setOrientationHint(90);
+//        }
+
+        if (SELECTED_CAMERA == CAMERA_FRONT_POSITION) {
+            //手机预览倒立的处理
+            if (cameraAngle == 270) {
+                //横屏
+                if (nowAngle == 0) {
+                    mediaRecorder.setOrientationHint(180);
+                } else if (nowAngle == 270) {
+                    mediaRecorder.setOrientationHint(270);
+                } else {
+                    mediaRecorder.setOrientationHint(90);
+                }
+            } else {
+                if (nowAngle == 90) {
+                    mediaRecorder.setOrientationHint(270);
+                } else if (nowAngle == 270) {
+                    mediaRecorder.setOrientationHint(90);
+                } else {
+                    mediaRecorder.setOrientationHint(nowAngle);
+                }
+            }
+        } else {
+            mediaRecorder.setOrientationHint(nowAngle);
+        }
+
+
+        if (DeviceUtil.isHuaWeiRongyao()) {
+            mediaRecorder.setVideoEncodingBitRate(4 * 100000);
+        } else {
+            mediaRecorder.setVideoEncodingBitRate(mediaQuality);
+        }
+        mediaRecorder.setPreviewDisplay(surface);
+
+        videoFileName = "video_" + System.currentTimeMillis() + ".mp4";
+        if (saveVideoPath.equals("")) {
+            saveVideoPath = Environment.getExternalStorageDirectory().getPath();
+        }
+        videoFileAbsPath = saveVideoPath + File.separator + videoFileName;
+        mediaRecorder.setOutputFile(videoFileAbsPath);
+        try {
+            mediaRecorder.prepare();
+            mediaRecorder.start();
+            isRecorder = true;
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
+            Log.i("CJT", "startRecord IllegalStateException");
+            if (this.errorLisenter != null) {
+                this.errorLisenter.onError();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            Log.i("CJT", "startRecord IOException");
+            if (this.errorLisenter != null) {
+                this.errorLisenter.onError();
+            }
+        } catch (RuntimeException e) {
+            Log.i("CJT", "startRecord RuntimeException");
+        }
+    }
+
+    //停止录像
+    public void stopRecord(boolean isShort, StopRecordCallback callback) {
+        if (!isRecorder) {
+            return;
+        }
+        if (mediaRecorder != null) {
+            mediaRecorder.setOnErrorListener(null);
+            mediaRecorder.setOnInfoListener(null);
+            mediaRecorder.setPreviewDisplay(null);
+            try {
+                mediaRecorder.stop();
+            } catch (RuntimeException e) {
+                e.printStackTrace();
+                mediaRecorder = null;
+                mediaRecorder = new MediaRecorder();
+            } finally {
+                if (mediaRecorder != null) {
+                    mediaRecorder.release();
+                }
+                mediaRecorder = null;
+                isRecorder = false;
+            }
+            if (isShort) {
+                if (FileUtil.deleteFile(videoFileAbsPath)) {
+                    callback.recordResult(null, null);
+                }
+                return;
+            }
+            doStopPreview();
+            String fileName = saveVideoPath + File.separator + videoFileName;
+            callback.recordResult(fileName, videoFirstFrame);
+        }
+    }
+
+    private void findAvailableCameras() {
+        Camera.CameraInfo info = new Camera.CameraInfo();
+        int cameraNum = Camera.getNumberOfCameras();
+        for (int i = 0; i < cameraNum; i++) {
+            Camera.getCameraInfo(i, info);
+            switch (info.facing) {
+                case Camera.CameraInfo.CAMERA_FACING_FRONT:
+                    CAMERA_FRONT_POSITION = info.facing;
+                    break;
+                case Camera.CameraInfo.CAMERA_FACING_BACK:
+                    CAMERA_POST_POSITION = info.facing;
+                    break;
+            }
+        }
+    }
+
+    int handlerTime = 0;
+
+    public void handleFocus(final Context context, final float x, final float y, final FocusCallback callback) {
+        if (mCamera == null) {
+            return;
+        }
+        final Camera.Parameters params = mCamera.getParameters();
+        Rect focusRect = calculateTapArea(x, y, 1f, context);
+        mCamera.cancelAutoFocus();
+        if (params.getMaxNumFocusAreas() > 0) {
+            List<Camera.Area> focusAreas = new ArrayList<>();
+            focusAreas.add(new Camera.Area(focusRect, 800));
+            params.setFocusAreas(focusAreas);
+        } else {
+            Log.i(TAG, "focus areas not supported");
+            callback.focusSuccess();
+            return;
+        }
+        final String currentFocusMode = params.getFocusMode();
+        try {
+            params.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
+            mCamera.setParameters(params);
+            mCamera.autoFocus(new Camera.AutoFocusCallback() {
+                @Override
+                public void onAutoFocus(boolean success, Camera camera) {
+                    if (success || handlerTime > 10) {
+                        Camera.Parameters params = camera.getParameters();
+                        params.setFocusMode(currentFocusMode);
+                        camera.setParameters(params);
+                        handlerTime = 0;
+                        callback.focusSuccess();
+                    } else {
+                        handlerTime++;
+                        handleFocus(context, x, y, callback);
+                    }
+                }
+            });
+        } catch (Exception e) {
+            Log.e(TAG, "autoFocus failer");
+        }
+    }
+
+
+    private static Rect calculateTapArea(float x, float y, float coefficient, Context context) {
+        float focusAreaSize = 300;
+        int areaSize = Float.valueOf(focusAreaSize * coefficient).intValue();
+        int centerX = (int) (x / ScreenUtils.getScreenWidth(context) * 2000 - 1000);
+        int centerY = (int) (y / ScreenUtils.getScreenHeight(context) * 2000 - 1000);
+        int left = clamp(centerX - areaSize / 2, -1000, 1000);
+        int top = clamp(centerY - areaSize / 2, -1000, 1000);
+        RectF rectF = new RectF(left, top, left + areaSize, top + areaSize);
+        return new Rect(Math.round(rectF.left), Math.round(rectF.top), Math.round(rectF.right), Math.round(rectF
+                .bottom));
+    }
+
+    private static int clamp(int x, int min, int max) {
+        if (x > max) {
+            return max;
+        }
+        if (x < min) {
+            return min;
+        }
+        return x;
+    }
+
+    void setErrorLinsenter(ErrorListener errorLisenter) {
+        this.errorLisenter = errorLisenter;
+    }
+
+
+    public interface StopRecordCallback {
+        void recordResult(String url, Bitmap firstFrame);
+    }
+
+    interface ErrorCallback {
+        void onError();
+    }
+
+    public interface TakePictureCallback {
+        void captureResult(Bitmap bitmap, boolean isVertical);
+    }
+
+    public interface FocusCallback {
+        void focusSuccess();
+
+    }
+
+
+    void registerSensorManager(Context context) {
+        if (sm == null) {
+            sm = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
+        }
+        sm.registerListener(sensorEventListener, sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager
+                .SENSOR_DELAY_NORMAL);
+    }
+
+    void unregisterSensorManager(Context context) {
+        if (sm == null) {
+            sm = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
+        }
+        sm.unregisterListener(sensorEventListener);
+    }
+
+    void isPreview(boolean res) {
+        this.isPreviewing = res;
+    }
+
+    List<Camera.Size> getPreviewSizeList() {
+        if (mCamera == null) {
+            return null;
+        }
+        return mCamera.getParameters().getSupportedPreviewSizes();
+    }
+
+    /**
+     * INTERNAL method that returns the device model name with correct capitalization.
+     * Taken from: http://stackoverflow.com/a/12707479/1254846
+     *
+     * @return The device model name (i.e., "LGE Nexus 5")
+     */
+    @NonNull
+    private static String getDeviceModelName() {
+        String manufacturer = Build.MANUFACTURER;
+        String model = Build.MODEL;
+        if (model.startsWith(manufacturer)) {
+            return capitalize(model);
+        } else {
+            return capitalize(manufacturer) + " " + model;
+        }
+    }
+
+    /**
+     * INTERNAL method that capitalizes the first character of a string
+     *
+     * @param s The string to capitalize
+     * @return The capitalized string
+     */
+    @NonNull
+    private static String capitalize(@Nullable String s) {
+        if (s == null || s.length() == 0) {
+            return "";
+        }
+        char first = s.charAt(0);
+        if (Character.isUpperCase(first)) {
+            return s;
+        } else {
+            return Character.toUpperCase(first) + s.substring(1);
+        }
+    }
+
+}
